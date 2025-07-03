@@ -1,0 +1,8 @@
+{
+    "dependencies": [
+        "."
+    ],
+    "graphs": {
+        "agent": "social_agent.graph:create_social_media_workflow"
+    }
+}
