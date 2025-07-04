@@ -1,8 +1,4 @@
-Great! Here's a polished, GitHub-ready version of your `README.md` tailored for a public repository. It includes badges, installation instructions, usage guidance, and a diagram section.
 
----
-
-````markdown
 # 🤖 AI Content Creation Workflow
 
 ![LangGraph](https://img.shields.io/badge/Built%20With-LangGraph-blue?style=flat-square)
@@ -10,7 +6,6 @@ Great! Here's a polished, GitHub-ready version of your `README.md` tailored for 
 
 An intelligent, agent-based workflow for generating content and images using automated research, LLMs, and human review. Powered by [LangGraph](https://github.com/langchain-ai/langgraph), this project streamlines the entire content production process—from fetching research data to delivering polished text and visuals.
 
----
 
 ## 🗺️ Workflow Overview
 
