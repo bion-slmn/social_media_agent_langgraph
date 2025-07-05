@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+from corsheaders.defaults import default_headers
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -55,6 +56,13 @@ MIDDLEWARE = [
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
+]
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "x-thread-id",  # Optional (usually only needed for requests)
+]
+
+CORS_EXPOSE_HEADERS = [
+    "X-Thread-ID",  # <-- This is what fixes the problem
 ]
 
 

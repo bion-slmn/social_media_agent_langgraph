@@ -64,7 +64,7 @@ class SocialMediaAgentService:
                     elif output.get('include_image') :
                         yield "data: Generating image\n\n"
                     elif output.get('final_node'):
-                        yield f"data: {output}\n\n"
+                        yield f"{output.get('final_node').get('posts')}\n\n"
                 yield "data: [Thread Complete]\n\n"
             except Exception as e:
                 yield f"data: Error: {str(e)}\n\n"
