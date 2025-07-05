@@ -2,4 +2,5 @@
 /pycache
 *.pyc
 *.pyo
-.venv/.venv/
+.venv/
+.venv/

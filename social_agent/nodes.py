@@ -51,6 +51,8 @@ def human_review(state: SocialMediaState) ->  Command[Literal["check_image", "re
 
     answer = interrupt({"query": 'check the ideas below and choose the one you want',
                           'ideas': state.get('posts', ''),})
+    
+    print(f"Human review answer: {answer}")
 
 
     if answer["approved"]:

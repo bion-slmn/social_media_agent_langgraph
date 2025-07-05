@@ -1,3 +1,4 @@
+import sqlite3
 import uuid
 from langgraph.types import   Command
 from image_agent.graph import create_image_graph
@@ -11,7 +12,7 @@ from .nodes import (
 from langgraph.graph import StateGraph, END, START
 from research_agent.graph import create_research_graph
 from .state import SocialMediaState
-from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.checkpoint.sqlite import SqliteSaver
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -58,13 +59,14 @@ def create_social_media_workflow():
 
     # --- After image generation, go to finalize ---
     social_media_workflow.add_edge("image_node", END)
-
-    return social_media_workflow.compile(checkpointer=InMemorySaver())
+    conn = sqlite3.connect("checkpoints.sqlite", check_same_thread=False)
+    memory = SqliteSaver(conn)
+    return social_media_workflow.compile(checkpointer=memory)
 
 
 if __name__ == "__main__":
     graph = create_social_media_workflow()
-    config = {"configurable": {"thread_id": uuid.uuid4()}}
+    config = {"configurable": {"thread_id": 1212}}
     messages = [
         {"role": "user", "content": "I want to create a post about the benefits of meditation for mental health."},
     ]
