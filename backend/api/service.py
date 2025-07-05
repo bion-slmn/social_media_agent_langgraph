@@ -32,7 +32,7 @@ class SocialMediaAgentService:
                         yield "data: Generating posts...\n\n"
                     elif output.get('__interrupt__'):
                         human_review = output['__interrupt__'][0].value
-                        yield f"data: Please Review..........\n\n{human_review}\n\n"
+                        yield f"{human_review['ideas']}\n\n"
                     elif output.get('include_image') and output.get('approved'):
                         yield "data: Generating image\n\n"
                     else:
@@ -52,7 +52,7 @@ class SocialMediaAgentService:
 
         command = Command(resume={"approved": approved})
         if not approved and comments:
-            command = Command(resume={"approved": False, "comments": "less professional and more friendly"})
+            command = Command(resume={"approved": False, "comments": comments})
         
 
         def event_stream():
