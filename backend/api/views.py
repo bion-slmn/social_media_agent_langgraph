@@ -27,7 +27,7 @@ class SocialMediaAgentView(APIView):
                 return Response({"error": "Message is required."}, status=400)
 
             messages = [{"role": "user", "content": message}]
-            thread_id = 1212  # serialize UUID to string
+            thread_id = uuid.uuid4().hex  # Generate a unique thread ID
 
             config = {"configurable": {"thread_id": thread_id}}
 
@@ -49,7 +49,7 @@ class SocialMediaAgentView(APIView):
 
     def put(self, request):
         
-        thread_id = 1212
+        thread_id = request.data.get("thread_id")
         approved = request.data.get("approved", True)
         print(f"Thread ID: {thread_id}, Approved: {approved}")
         if not thread_id:
