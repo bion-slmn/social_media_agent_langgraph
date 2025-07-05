@@ -9,7 +9,7 @@ from langgraph.graph import END
 llm = load_model("gemini-2.0-flash")
 
 
-def should_research_node(state: SocialMediaState) -> str:
+def should_research_node(state: SocialMediaState) -> Command[Literal["research_node", "content_generation_agent"]]:
     """
     Uses the LLM to decide if the content requires additional research.
 
@@ -23,7 +23,9 @@ def should_research_node(state: SocialMediaState) -> str:
     print(f"LLM response: {response} user_message: {user_message}")
     answer = response["should_research"]
 
-    return "research_node" if answer else "content_generation_agent"
+    return Command(
+        goto="research_node" if answer else "content_generation_agent",
+        update={"should_research": answer,})
 
 
 def content_generation_agent(state: SocialMediaState) -> SocialMediaState:
@@ -39,10 +41,9 @@ def content_generation_agent(state: SocialMediaState) -> SocialMediaState:
     return state
 
 
-def check_image(state: SocialMediaState) -> Command[Literal["image_node", END]]:
+def check_image(state: SocialMediaState) -> Command[Literal["image_node", "final_node"]]:
     print("🖼️ Deciding whether to generate image...")
-    return Command(goto="image_node") if state.get("include_image") else Command(goto=END)
-
+    return Command(goto="image_node") if state.get("include_image") else Command(goto="final_node")
 
 
 
@@ -52,7 +53,7 @@ def human_review(state: SocialMediaState) ->  Command[Literal["check_image", "re
     answer = interrupt({"query": 'check the ideas below and choose the one you want',
                           'ideas': state.get('posts', ''),})
     
-    print(f"Human review answer: {answer}")
+    print(f"Human review answer: {answer} ..................")
 
 
     if answer["approved"]:
@@ -64,10 +65,10 @@ def human_review(state: SocialMediaState) ->  Command[Literal["check_image", "re
 
 
 def revise_content_agent(state: SocialMediaState) -> SocialMediaState:
-    print("🔁 Revising content...")
+    print("🔁 Revising content... \n\n\n\n")
 
     human_message = state["messages"][0].content
-    original_content = state.get("ideas", "")
+    original_content = state.get("posts", "")
     feedback = state.get("feedback", "")
 
     prompt = revise_content_prompt(human_message, original_content, feedback)
@@ -75,6 +76,10 @@ def revise_content_agent(state: SocialMediaState) -> SocialMediaState:
     state["ideas"] = response.content 
     state["feedback"] = None
     return state
+
+def final_node(state: SocialMediaState) -> SocialMediaState:
+    print("✅ Finalizing post...")
+    return {"posts": state["posts"]}
 
 
 

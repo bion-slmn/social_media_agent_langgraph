@@ -16,6 +16,7 @@ class SocialMediaState(MessagesState):
 
     researched_content: Annotated[list[str], operator.add]
     sources: List[Sources]
+    should_research: bool
 
 
 class ShouldResearch(TypedDict):

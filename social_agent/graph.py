@@ -7,7 +7,8 @@ from .nodes import (
     content_generation_agent,
     human_review,
     revise_content_agent,
-    check_image,   
+    check_image,
+    final_node
 )
 from langgraph.graph import StateGraph, END, START
 from research_agent.graph import create_research_graph
@@ -29,21 +30,19 @@ def create_social_media_workflow():
     social_media_workflow = StateGraph(SocialMediaState)
 
     # --- Add nodes ---
-   
+
+    social_media_workflow.add_node("should_research_node", should_research_node)
     social_media_workflow.add_node("research_node", research_node)
     social_media_workflow.add_node("content_generation_agent", content_generation_agent)
     social_media_workflow.add_node("human_review", human_review)
     social_media_workflow.add_node("revise_content_agent", revise_content_agent)
     social_media_workflow.add_node("check_image", check_image)
     social_media_workflow.add_node("image_node", image_node)
+    social_media_workflow.add_node("final_node", final_node)
   
 
-    # --- Entry point ---
-    social_media_workflow.add_conditional_edges(
-    START,
-    should_research_node,  # returns name of next node
-    ["research_node", "content_generation_agent"]
-)
+    # --- Add start node ---
+    social_media_workflow.add_edge(START, "should_research_node")
 
     # --- After research, go to content generation ---
     social_media_workflow.add_edge("research_node", "content_generation_agent")
@@ -54,11 +53,12 @@ def create_social_media_workflow():
 
     # --- After revision, go back to review ---
     social_media_workflow.add_edge("revise_content_agent", "check_image")
+    social_media_workflow.add_edge("final_node", END)
 
    
 
     # --- After image generation, go to finalize ---
-    social_media_workflow.add_edge("image_node", END)
+    social_media_workflow.add_edge("image_node", "final_node")
     conn = sqlite3.connect("checkpoints.sqlite", check_same_thread=False)
     memory = SqliteSaver(conn)
     return social_media_workflow.compile(checkpointer=memory)
@@ -74,5 +74,5 @@ if __name__ == "__main__":
                            "tone": "engaging", "include_image": False,
                            }, config=config)
     print(result["__interrupt__"])
-    final_result = graph.invoke(Command(resume={"approved": True, }), config=config)
+    final_result = graph.invoke(Command(resume={"approved": False, "comments": "less professional and more friendly"}), config=config)
     print(final_result)

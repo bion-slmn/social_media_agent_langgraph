@@ -1,3 +1,4 @@
+from django.http import StreamingHttpResponse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
@@ -6,6 +7,14 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 import uuid
 from langgraph.types import   Command
+from .service import SocialMediaAgentService
+
+@api_view(['GET'])
+def status(request):
+    return Response({"status": "Social Media Agent is running 🚀"})
+
+
+
 
 
 @api_view(['GET'])
@@ -14,54 +23,43 @@ def status(request):
 
 
 class SocialMediaAgentView(APIView):
-
     def __init__(self, **kwargs):
-        self.graph = create_social_media_workflow()
+        super().__init__(**kwargs)
+        self.service = SocialMediaAgentService()
 
     def post(self, request):
         try:
-            include_image = request.data.get("include_image", False)
             message = request.data.get("message")
-
-            if not message:
-                return Response({"error": "Message is required."}, status=400)
-
-            messages = [{"role": "user", "content": message}]
-            thread_id = uuid.uuid4().hex  # Generate a unique thread ID
-
-            config = {"configurable": {"thread_id": thread_id}}
-
-            result = self.graph.invoke({
-                "messages": messages,
-                "tone": "engaging",
-                "include_image": include_image,
-            }, config=config)
-            interrupts = result.get("__interrupt__", [])
+            include_image = request.data.get("include_image", False)
 
 
-            return Response({
-                "human_review": interrupts[0].value ,
-                "thread_id": thread_id,
-            })
+            event_stream, thread_id = self.service.stream_message(message, include_image)
+            print(f"Generated thread_id: {thread_id}")
+            response = StreamingHttpResponse(event_stream, content_type='text/event-stream')
+            response['X-Thread-ID'] = str(thread_id) # Add a custom header
+            return response
 
         except Exception as e:
+            print(e)
             return Response({"error": str(e)}, status=400)
 
     def put(self, request):
+        try:
+            thread_id = request.data.get("thread_id")
+            comments = request.data.get("comments")
+            approved = request.data.get("approved", True)
+            print(f"Resuming workflow for thread_id: {thread_id} with approved: {approved}")
+            if not thread_id:
+                return Response({"error": "thread_id is required."}, status=status.HTTP_400_BAD_REQUEST)
+            
+
+            event_stream = self.service.resume_workflow(thread_id, approved, comments)
+
+            return StreamingHttpResponse(event_stream, content_type='text/event-stream')
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=400)
         
-        thread_id = request.data.get("thread_id")
-        approved = request.data.get("approved", True)
-        print(f"Thread ID: {thread_id}, Approved: {approved}")
-        if not thread_id:
-            return Response({"error": "thread_id is required."}, status=400)
-
-        config = {"configurable": {"thread_id": thread_id}}
-
-        final_result = self.graph.invoke(
-            Command(resume={"approved": True}),
-            config=config
-        )
-
-        return Response({"result": final_result})
+   
 
 
